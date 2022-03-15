@@ -54,7 +54,7 @@ def data_base_histogram(img_array):
 
 def compare_histograms(query_image, database_image):
     """
-    Function for comparing the and computing the distance between an image and the rest of the database. This function
+    Function for comparing the histograms and computing the distance between an image and the rest of the database. This function
     will compare the histograms for each of the images.
     :param
         query_image: histogram for each color for the image that is used as query
@@ -166,17 +166,17 @@ def combine_distances(hist_dist, gabor_dist, img_names):
 
     return complete_result
 
-
+'''
 images_names, images_array = load_images("data")
 images_histograms = data_base_histogram(images_array)
 
 
-histogram_distances = compare_histograms(images_histograms[20], images_histograms, images_names)
+histogram_distances = compare_histograms(images_histograms[20], images_histograms)
 print(histogram_distances[:5])
 
 gabor_kernels = create_kernels()
 gabor_feats = compute_feats(images_names, gabor_kernels)
-gabor_distances = compare_gabor(gabor_feats[20], gabor_feats, images_names)
+gabor_distances = compare_gabor(gabor_feats[20], gabor_feats)
 print(gabor_distances[:5])
 
 similar_images = combine_distances(histogram_distances, gabor_distances, images_names)
@@ -195,3 +195,4 @@ plt.show()
 img = mpimg.imread(similar_images[-1][0])
 plt.imshow(img)
 plt.show()
+'''
