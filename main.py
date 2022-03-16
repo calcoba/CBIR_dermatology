@@ -21,13 +21,11 @@ def load_images(folder_path):
         img_array: list of arrays, each one represent the image encoded with 3 channels."""
 
     img_names = glob.glob(folder_path+'/*.jpg')
-    img_array = []
-    for image in img_names:
-        img_array.append(io.imread(image))
-    return img_names, img_array
+
+    return img_names
 
 
-def data_base_histogram(img_array):
+def data_base_histogram(img_names):
     """
     Function to compute the histogram for each of the 3 channel in a set of images. It takes as parameter a list of
     arrays with the images and returns a list with the histogram for each of the image.
@@ -36,6 +34,9 @@ def data_base_histogram(img_array):
     :return:
         img_histograms: list with the histogram for each of the image divided in colors of the RGB.
     """
+    img_array = []
+    for image in img_names:
+        img_array.append(io.imread(image))
     colors = ("red", "green", "blue")
     channel_ids = (0, 1, 2)
     img_histograms = []
@@ -73,9 +74,7 @@ def compare_histograms(query_image, database_image):
         # Add the mean of the distances divided by the number of pixels to the list of distances
         img_distances.append(np.mean(channel_distances)/sum(query_image[img_channel]))
 
-    img_distances_scaled = MinMaxScaler().fit_transform(np.array(img_distances).reshape(-1, 1))
-
-    return img_distances_scaled
+    return img_distances
 
 
 def create_kernels(n_theta=4, sigmas=(1, 3), frequencies=(0.05, 0.25)):
@@ -147,7 +146,7 @@ def compare_gabor(gabor_query, gabor_data):
     return gabor_dist_scaled
 
 
-def combine_distances(hist_dist, gabor_dist, img_names):
+def sort_distances(dist_data, img_names):
     """
     Function that combines both distances with a linear combinations.
 
@@ -161,16 +160,14 @@ def combine_distances(hist_dist, gabor_dist, img_names):
         complete_results: list of tuples (image file name, and punctuation respect to the query image), ordered from the
         most similar to the less.
     """
-    result = np.add(hist_dist, gabor_dist)
-    complete_result = sorted(zip(img_names, result), key=lambda x: x[1])
+    complete_result = sorted(zip(img_names, dist_data), key=lambda x: x[1])
 
     return complete_result
 
-'''
-images_names, images_array = load_images("data")
-images_histograms = data_base_histogram(images_array)
 
+'''images_names = load_images("data")
 
+images_histograms = data_base_histogram(images_names)
 histogram_distances = compare_histograms(images_histograms[20], images_histograms)
 print(histogram_distances[:5])
 
@@ -179,20 +176,24 @@ gabor_feats = compute_feats(images_names, gabor_kernels)
 gabor_distances = compare_gabor(gabor_feats[20], gabor_feats)
 print(gabor_distances[:5])
 
-similar_images = combine_distances(histogram_distances, gabor_distances, images_names)
-print(similar_images[:5])
-print(similar_images[-5:])
+similar_images_hist = sort_distances(histogram_distances, images_names)
+similar_images_gabor = sort_distances(gabor_distances, images_names)
+ranked_images_names, _ = zip(*similar_images_gabor)
 
-img = mpimg.imread(similar_images[0][0])
+ranked_images_histograms = data_base_histogram(ranked_images_names[:10])
+histogram_distances_ranked = compare_histograms(ranked_images_histograms[0], ranked_images_histograms)
+similar_images_hist_gabor = sort_distances(histogram_distances_ranked, ranked_images_names[:10])
+
+img = mpimg.imread(similar_images_hist_gabor[0][0])
 plt.imshow(img)
 plt.show()
-img = mpimg.imread(similar_images[1][0])
+img = mpimg.imread(similar_images_hist_gabor[1][0])
 plt.imshow(img)
 plt.show()
-img = mpimg.imread(similar_images[11][0])
+img = mpimg.imread(similar_images_hist_gabor[5][0])
 plt.imshow(img)
 plt.show()
-img = mpimg.imread(similar_images[-1][0])
+img = mpimg.imread(similar_images_hist_gabor[-1][0])
 plt.imshow(img)
 plt.show()
 '''
